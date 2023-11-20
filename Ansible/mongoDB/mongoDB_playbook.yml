@@ -1,0 +1,136 @@
+---
+ - name: "MongoDB Plugin Installation"
+   hosts: localhost
+   become: yes
+   vars:
+      host: "mongoDB_network"
+      port: "27017"
+      username: '"None"'
+      password: '"None"'
+      dbname: "mydatabase"
+      authdb: "admin"
+      tls: False
+      tlscertificatekeyfile: '"None"'
+      tlscertificatekeyfilepassword: '"None"'
+      tlsallowinvalidcertificates: False
+
+
+   tasks:
+
+   - name: Check if python3 is installed
+     command: "python3 --version"
+     register: python_version_output
+     ignore_errors: yes
+
+   - name: Install Python if not found (for Debian/Ubuntu)
+     apt:
+        name: python3
+        state: present
+     when: "'Python' not in python_version_output.stdout and ansible_facts['os_family'] == 'Debian'"
+
+   - name: Install Python if not found (for RedHat/Centos)
+     yum:
+        name: python3
+        state: present
+     when: "'Python' not in python_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
+
+   - name: Check if pip3 is installed
+     command: "pip3 --version"
+     register: pip_version_output
+     ignore_errors: yes
+
+   - name: Install pip if not found (for Debian/Ubuntu)
+     apt:
+        name: python3-pip
+        state: present
+     when: "'pip' not in python_version_output.stdout and ansible_facts['os_family'] == 'Debian'"
+
+   - name: Install pip if not found (for Debian/Ubuntu)
+     yum:
+        name: python3-pip
+        state: present
+     when: "'pip' not in python_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
+
+   - name: Install pymongo
+     pip:
+        name: pymongo
+        state: present
+        executable: pip3
+     ignore_errors: yes
+
+   - name: "Agent Directory Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp"
+     register: agent_path_check
+
+   - name: "Plugins Directory Creation"
+     file:
+      path: "/opt/site24x7/monagent/temp/plugins/mongoDB"
+      state: directory
+     when: agent_path_check.stat.exists
+
+   - name: "Plugin Directory Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/mongoDB"
+     register: plugin_path_check
+
+   - name: "Download the MongoDB plugin files"
+     get_url:
+        url: "{{ item }}"
+        dest: "/opt/site24x7/monagent/temp/plugins/mongoDB"
+        mode: 0744
+     loop: ["https://raw.githubusercontent.com/site24x7/plugins/master/mongoDB/mongoDB.py","https://raw.githubusercontent.com/site24x7/plugins/master/mongoDB/mongoDB.cfg"]
+     when: plugin_path_check.stat.exists
+    
+
+# MongoDB Config File Setup
+
+   - name: "MongoDB config File Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.cfg"
+     register: mongoDB_file_check
+
+   - name: "MongoDB configuration"
+     lineinfile: 
+       path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.cfg"
+       regexp: "{{ item.regex }}"
+       line: "{{ item.line }}"
+     loop:
+       - { regex: 'host =', line: 'host ={{host}}' }
+       - { regex: 'port =', line: 'port ={{port}}' }
+       - { regex: 'username =', line: 'username ={{username}}' }
+       - { regex: 'password =', line: 'password ={{password}}' }
+       - { regex: 'dbname =', line: 'dbname ={{dbname}}' }
+       - { regex: 'authdb=', line: 'authdb ={{authdb}}' }
+       - { regex: 'tls=', line: 'tls ={{tls}}' }
+       - { regex: 'tlscertificatekeyfile=', line: 'tlscertificatekeyfile ={{tlscertificatekeyfile}}' }
+       - { regex: 'tlscertificatekeyfilepassword=', line: 'tlscertificatekeyfilepassword ={{tlscertificatekeyfilepassword}}' }
+       - { regex: 'tlsallowinvalidcertificates=', line: 'tlsallowinvalidcertificates ={{tlsallowinvalidcertificates}}' }
+     when: mongoDB_file_check.stat.exists
+
+
+# MongoDB Python File Setup
+
+   - name: "MongoDB python File Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.py"
+     register: mongoDB_python_file_check
+
+   - name: python3 path check
+     command: which python3
+     register: python3_path
+
+   - set_fact:
+      actual_path: "{{ '#!'+python3_path.stdout }}"
+
+   - name: "Setting the python path for the plugin"
+     lineinfile:
+       path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.py"
+       regexp: "#!"
+       line: "{{actual_path}}"
+     when: mongoDB_python_file_check.stat.exists
+
+   - name: "Moving the mongoDB Folder to the Plugins directory"
+     command: "mv  /opt/site24x7/monagent/temp/plugins/mongoDB /opt/site24x7/monagent/plugins"
+     ignore_errors: true
+     when: plugin_path_check.stat.exists
