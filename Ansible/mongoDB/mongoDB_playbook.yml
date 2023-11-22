@@ -1,80 +1,89 @@
 ---
- - name: "MongoDB Plugin Installation"
-   hosts: localhost
+ - name: "Site24x7 MongoDB Plugin Installation"
+   hosts: all
    become: yes
    vars:
-      host: "mongoDB_network"
-      port: "27017"
-      username: '"None"'
-      password: '"None"'
-      dbname: "mydatabase"
-      authdb: "admin"
-      tls: False
-      tlscertificatekeyfile: '"None"'
-      tlscertificatekeyfilepassword: '"None"'
-      tlsallowinvalidcertificates: False
+      mongoDB_host: "localhost1"
+      mongoDB_port: "27017"
+      mongoDB_username: '"None"'
+      mongoDB_password: '"None"'
+      mongoDB_dbname: "mydatabase"
+      mongoDB_authdb: "admin"
+      mongoDB_tls: False
+      mongoDB_tlscertificatekeyfile: '"None"'
+      mongoDB_tlscertificatekeyfilepassword: '"None"'
+      mongoDB_tlsallowinvalidcertificates: False
 
 
-   tasks:
+  
+   tasks:    
+  # Site24x7 MongoDB Prerequisites Check
 
-   - name: Check if python3 is installed
+   - name: "Python3 Installation Check."
      command: "python3 --version"
      register: python_version_output
      ignore_errors: yes
 
-   - name: Install Python if not found (for Debian/Ubuntu)
+   - name: "Installing Python if not found (for Debian/Ubuntu)."
      apt:
         name: python3
         state: present
-     when: "'Python' not in python_version_output.stdout and ansible_facts['os_family'] == 'Debian'"
+     when: "not python_version_output.stdout and ansible_facts['os_family'] == 'Debian'"
 
-   - name: Install Python if not found (for RedHat/Centos)
+   - name: "Installing Python if not found (for CentOS/RedHat)."
      yum:
         name: python3
         state: present
-     when: "'Python' not in python_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
+     when: "not python_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
 
-   - name: Check if pip3 is installed
+   - name: "pip3 Installation Check."
      command: "pip3 --version"
      register: pip_version_output
      ignore_errors: yes
 
-   - name: Install pip if not found (for Debian/Ubuntu)
+   - name: "Installing pip3 if not found (for Debian/Ubuntu)."
      apt:
         name: python3-pip
         state: present
-     when: "'pip' not in python_version_output.stdout and ansible_facts['os_family'] == 'Debian'"
+     when: "not pip_version_output.stdout and ansible_facts['os_family'] == 'Debian'"
 
-   - name: Install pip if not found (for Debian/Ubuntu)
+   - name: "Installing pip3 if not found (for RedHat/CentOS)."
      yum:
         name: python3-pip
         state: present
-     when: "'pip' not in python_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
+     when: "not pip_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
 
-   - name: Install pymongo
+   - name: "Installing pymongo Python3 Package."
      pip:
         name: pymongo
         state: present
         executable: pip3
      ignore_errors: yes
 
-   - name: "Agent Directory Check"
+   - name: "Site24x7 Agent Directory Check."
      stat:
       path: "/opt/site24x7/monagent/temp"
      register: agent_path_check
 
-   - name: "Plugins Directory Creation"
+   - name: "Hosts with no Site24x7 Agent Directory"
+     debug:
+      msg: "Agent Directory not found"
+
+     when: not agent_path_check.stat.exists
+
+
+   - name: "Site24x7 Temp Plugins Directory Creation."
      file:
       path: "/opt/site24x7/monagent/temp/plugins/mongoDB"
       state: directory
      when: agent_path_check.stat.exists
 
-   - name: "Plugin Directory Check"
+   - name: "Site24x7 Plugin Directory Check"
      stat:
       path: "/opt/site24x7/monagent/temp/plugins/mongoDB"
      register: plugin_path_check
 
-   - name: "Download the MongoDB plugin files"
+   - name: "Download the Site24x7 MongoDB Plugin Files."
      get_url:
         url: "{{ item }}"
         dest: "/opt/site24x7/monagent/temp/plugins/mongoDB"
@@ -83,54 +92,64 @@
      when: plugin_path_check.stat.exists
     
 
-# MongoDB Config File Setup
+  # Site24x7 MongoDB Plugin Config File Setup
 
-   - name: "MongoDB config File Check"
+   - name: "Site24x7 MongoDB Config File Check."
      stat:
       path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.cfg"
      register: mongoDB_file_check
 
-   - name: "MongoDB configuration"
+   - name: "Site24x7 MongoDB configuration."
      lineinfile: 
        path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.cfg"
        regexp: "{{ item.regex }}"
        line: "{{ item.line }}"
      loop:
-       - { regex: 'host =', line: 'host ={{host}}' }
-       - { regex: 'port =', line: 'port ={{port}}' }
-       - { regex: 'username =', line: 'username ={{username}}' }
-       - { regex: 'password =', line: 'password ={{password}}' }
-       - { regex: 'dbname =', line: 'dbname ={{dbname}}' }
-       - { regex: 'authdb=', line: 'authdb ={{authdb}}' }
-       - { regex: 'tls=', line: 'tls ={{tls}}' }
-       - { regex: 'tlscertificatekeyfile=', line: 'tlscertificatekeyfile ={{tlscertificatekeyfile}}' }
-       - { regex: 'tlscertificatekeyfilepassword=', line: 'tlscertificatekeyfilepassword ={{tlscertificatekeyfilepassword}}' }
-       - { regex: 'tlsallowinvalidcertificates=', line: 'tlsallowinvalidcertificates ={{tlsallowinvalidcertificates}}' }
+       - { regex: 'host =', line: 'host ={{mongoDB_host}}' }
+       - { regex: 'port =', line: 'port ={{mongoDB_port}}' }
+       - { regex: 'username =', line: 'username ={{mongoDB_username}}' }
+       - { regex: 'password =', line: 'password ={{mongoDB_password}}' }
+       - { regex: 'dbname =', line: 'dbname ={{mongoDB_dbname}}' }
+       - { regex: 'authdb=', line: 'authdb ={{mongoDB_authdb}}' }
+       - { regex: 'tls=', line: 'tls ={{mongoDB_tls}}' }
+       - { regex: 'tlscertificatekeyfile=', line: 'tlscertificatekeyfile ={{mongoDB_tlscertificatekeyfile}}' }
+       - { regex: 'tlscertificatekeyfilepassword=', line: 'tlscertificatekeyfilepassword ={{mongoDB_tlscertificatekeyfilepassword}}' }
+       - { regex: 'tlsallowinvalidcertificates=', line: 'tlsallowinvalidcertificates ={{mongoDB_tlsallowinvalidcertificates}}' }
      when: mongoDB_file_check.stat.exists
 
 
-# MongoDB Python File Setup
+  # Site24x7 MongoDB Python File Setup
 
-   - name: "MongoDB python File Check"
+   - name: "Site24x7 MongoDB Python File Check."
      stat:
       path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.py"
      register: mongoDB_python_file_check
 
-   - name: python3 path check
+   - name: "Extracting Python3 Default Path."
      command: which python3
      register: python3_path
 
    - set_fact:
       actual_path: "{{ '#!'+python3_path.stdout }}"
 
-   - name: "Setting the python path for the plugin"
+   - name: "Setting the Default Python Path for the Site24x7 MongoDB Plugin"
      lineinfile:
        path: "/opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.py"
        regexp: "#!"
        line: "{{actual_path}}"
      when: mongoDB_python_file_check.stat.exists
 
-   - name: "Moving the mongoDB Folder to the Plugins directory"
+   - name: "Checking the Site24x7 mongoDB Plugin Output"
+     shell: "python3 /opt/site24x7/monagent/temp/plugins/mongoDB/mongoDB.py --host={{mongoDB_host}} --port={{mongoDB_port}} --username={{mongoDB_username}} --password={{mongoDB_password}} --dbname={{mongoDB_dbname}} --authdb={{mongoDB_authdb}} --tls={{mongoDB_tls}}"
+     register: mongoDB_python_output
+     when: mongoDB_python_file_check.stat.exists
+
+   - name: "Site24x7 mongoDB plugins with Error !"
+     debug:
+      msg: "Site24x7 mongoDB Plugin OUTPUT error ! \n {{ mongoDB_python_output.stdout }}"
+     when: "'\"status\": 0' in mongoDB_python_output.stdout and mongoDB_python_file_check.stat.exists"
+
+   - name: "Moving the Site24x7 mongoDB Folder to the Plugins Directory"
      command: "mv  /opt/site24x7/monagent/temp/plugins/mongoDB /opt/site24x7/monagent/plugins"
      ignore_errors: true
-     when: plugin_path_check.stat.exists
+     when: "plugin_path_check.stat.exists and '\"status\": 0' not in mongoDB_python_output.stdout"
