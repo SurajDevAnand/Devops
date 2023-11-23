@@ -1,18 +1,18 @@
 ---
  - name: "Site24x7 MongoDB Plugin Installation"
-   hosts: all
+   hosts: all 
    become: yes
    vars:
-      mongoDB_host: "localhost1"
+      mongoDB_host: "mongoDB_host"
       mongoDB_port: "27017"
-      mongoDB_username: '"None"'
-      mongoDB_password: '"None"'
+      mongoDB_username: '"None"'                      # mongoDB username    [default value "'None'" incase of no username]
+      mongoDB_password: '"None"'                      # mongoDB password    [default value "'None'" incase of no password]
       mongoDB_dbname: "mydatabase"
-      mongoDB_authdb: "admin"
-      mongoDB_tls: False
-      mongoDB_tlscertificatekeyfile: '"None"'
-      mongoDB_tlscertificatekeyfilepassword: '"None"'
-      mongoDB_tlsallowinvalidcertificates: False
+      mongoDB_authdb: "admin"                         # mongoDB authentication database
+      mongoDB_tls: False                              # mongoDB TLS option (True/False)    [default value False incase of no TLS]
+      mongoDB_tlscertificatekeyfile: '"None"'         # mongoDB TLS certificate path       [default value '"None"' incase of no TLS]
+      mongoDB_tlscertificatekeyfilepassword: '"None"' # mongoDB TLS certificate password   [default value '"None"' incase of no TLS]
+      mongoDB_tlsallowinvalidcertificates: False      # mongoDB invalid TLS certificate (True/False)   [default value False incase of no TLS]
 
 
   
