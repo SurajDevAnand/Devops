@@ -1,0 +1,11 @@
+---
+Oracle_host: "localhost"
+Oracle_port: "2484"
+Oracle_username: "suraj"                           
+Oracle_password: "suraj"    
+Oracle_home: "/opt/oracle/product/19c/dbhome_1"                         
+Oracle_sid: "ORCLCDB"
+Oracle_tablespace_names: '[\"SYSTEM\",\"USERS\"]'
+Oracle_tablespace_name: "SYSTEM"
+Oracle_tls: "True"
+Oracle_wallet_location: "/opt/oracle/product/19c/dbhome_1/wallet"

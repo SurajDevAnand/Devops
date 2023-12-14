@@ -1,0 +1,26 @@
+---
+
+   - name: "Site24x7 Temp OraclePDB Plugins Directory Creation."
+     file:
+      path: "/opt/site24x7/monagent/temp/plugins/OraclePDB"
+      state: directory
+     when: agent_path_check.stat.exists
+
+   - name: "Site24x7 Plugin Directory Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/OraclePDB"
+     register: plugin_path_check
+
+   - name: "Download the Site24x7 OraclePDB Plugin Files."
+     get_url:
+        url: "{{ item }}"
+        dest: "/opt/site24x7/monagent/temp/plugins/OraclePDB"
+        mode: 0744
+     loop: 
+      - "https://raw.githubusercontent.com/site24x7/plugins/suraj/OracleFullStackMonitoring/OraclePDB/OraclePDB.py"
+      - "https://raw.githubusercontent.com/site24x7/plugins/suraj/OracleFullStackMonitoring/OraclePDB/OraclePDB.cfg"
+     when: plugin_path_check.stat.exists
+
+
+
+     

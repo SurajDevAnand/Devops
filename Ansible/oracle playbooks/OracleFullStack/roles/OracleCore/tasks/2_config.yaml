@@ -1,0 +1,22 @@
+---
+  # Site24x7 OracleCore Plugin Config File Setup
+   - name: "Site24x7 OracleCore Config File Check."
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/OracleCore/OracleCore.cfg"
+     register: OracleCore_config_file_check
+
+   - name: "Site24x7 OracleCore configuration."
+     lineinfile: 
+       path: "/opt/site24x7/monagent/temp/plugins/OracleCore/OracleCore.cfg"
+       regexp: "{{ item.regex }}"
+       line: "{{ item.line }}"
+     loop:
+       - { regex: 'hostname =', line: 'hostname ={{Oracle_host}}' }
+       - { regex: 'port =', line: 'port ={{Oracle_port}}' }
+       - { regex: 'username =', line: 'username ={{Oracle_username}}' }
+       - { regex: 'password =', line: 'password ={{Oracle_password}}' }
+       - { regex: 'oracle_home =', line: 'oracle_home ={{Oracle_home}}' }
+       - { regex: 'sid =', line: 'sid ={{Oracle_sid}}' }
+       - { regex: 'tls =', line: 'tls ={{Oracle_tls}}' }
+       - { regex: 'wallet_location =', line: 'wallet_location ={{Oracle_wallet_location}}' }
+     when: OracleCore_config_file_check.stat.exists

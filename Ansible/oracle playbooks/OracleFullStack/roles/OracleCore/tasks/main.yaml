@@ -1,0 +1,7 @@
+---
+ - import_tasks: 1_prerequisites.yaml
+ - import_tasks: 2_config.yaml
+ - import_tasks: 3_plugin_setup.yaml
+
+
+ 

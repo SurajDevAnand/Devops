@@ -1,0 +1,39 @@
+---
+   - name: "Python3 Installation Check."
+     command: "python3 --version"
+     register: python_version_output
+     ignore_errors: yes
+
+   - name: "Installing Python if not found (for CentOS/RedHat/Oracle Linux)."
+     yum:
+        name: python3
+        state: present
+     when: "not python_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
+
+   - name: "pip3 Installation Check."
+     command: "pip3 --version"
+     register: pip_version_output
+     ignore_errors: yes
+
+   - name: "Installing pip3 if not found (for RedHat/CentOS/Oracle Linux)."
+     yum:
+        name: python3-pip
+        state: present
+     when: "not pip_version_output.stdout and ansible_facts['os_family'] == 'RedHat'"
+
+   - name: "Installing oracledb Python3 Package."
+     pip:
+        name: oracledb
+        state: present
+        executable: pip3
+     ignore_errors: yes
+
+   - name: "Site24x7 Agent Directory Check."
+     stat:
+      path: "/opt/site24x7/monagent/temp"
+     register: agent_path_check
+
+   - name: "Hosts with no Site24x7 Agent Directory"
+     debug:
+      msg: "Agent Directory not found"
+     when: not agent_path_check.stat.exists

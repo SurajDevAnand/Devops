@@ -1,0 +1,37 @@
+---
+  # Site24x7 OraclePDB Python File Setup
+   - name: "Site24x7 OraclePDB Python File Check."
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/OraclePDB/OraclePDB.py"
+     register: OraclePDB_python_file_check
+
+   - name: "Extracting Python3 Default Path."
+     command: which python3
+     register: python3_path
+
+   - set_fact:
+      actual_path: "{{ '#!'+python3_path.stdout }}"
+
+   - name: "Setting the Default Python Path for the Site24x7 OraclePDB Plugin"
+     lineinfile:
+       path: "/opt/site24x7/monagent/temp/plugins/OraclePDB/OraclePDB.py"
+       regexp: "#!"
+       line: "{{actual_path}}"
+     when: OraclePDB_python_file_check.stat.exists
+
+   - name: "Checking the Site24x7 OraclePDB Plugin Output"
+     shell: "/opt/site24x7/monagent/temp/plugins/OraclePDB/OraclePDB.py --hostname={{Oracle_host}} --port={{Oracle_port}} --username={{Oracle_username}} --password={{Oracle_password}} --oracle_home={{Oracle_home}} --sid={{Oracle_sid}} --tls={{Oracle_tls}} --wallet_location={{Oracle_wallet_location}}"
+     register: OraclePDB_python_output
+     when: OraclePDB_python_file_check.stat.exists
+
+   - name: "Site24x7 OraclePDB plugins with Error !"
+     debug:
+      msg: "Site24x7 OraclePDB Plugin OUTPUT error ! \n {{ OraclePDB_python_output.stdout }}"
+     when: "'\"status\": 0' in OraclePDB_python_output.stdout and OraclePDB_python_file_check.stat.exists"
+
+   - name: "Moving the Site24x7 OraclePDB Folder to the Plugins Directory"
+     command: "mv  /opt/site24x7/monagent/temp/plugins/OraclePDB /opt/site24x7/monagent/plugins"
+     ignore_errors: true
+     when: "plugin_path_check.stat.exists and '\"status\": 0' not in OraclePDB_python_output.stdout"
+
+     

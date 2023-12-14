@@ -1,0 +1,26 @@
+---
+
+   - name: "Site24x7 Temp OracleSGA Plugins Directory Creation."
+     file:
+      path: "/opt/site24x7/monagent/temp/plugins/OracleSGA"
+      state: directory
+     when: agent_path_check.stat.exists
+
+   - name: "Site24x7 Plugin Directory Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/OracleSGA"
+     register: plugin_path_check
+
+   - name: "Download the Site24x7 OracleSGA Plugin Files."
+     get_url:
+        url: "{{ item }}"
+        dest: "/opt/site24x7/monagent/temp/plugins/OracleSGA"
+        mode: 0744
+     loop: 
+      - "https://raw.githubusercontent.com/site24x7/plugins/suraj/OracleFullStackMonitoring/OracleSGA/OracleSGA.py"
+      - "https://raw.githubusercontent.com/site24x7/plugins/suraj/OracleFullStackMonitoring/OracleSGA/OracleSGA.cfg"
+     when: plugin_path_check.stat.exists
+
+
+
+     

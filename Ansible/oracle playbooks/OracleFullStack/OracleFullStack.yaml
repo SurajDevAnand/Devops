@@ -1,0 +1,35 @@
+---
+ - name: "Site24x7 Oracle Plugins Installation"
+   hosts: all 
+   become: yes
+   roles:
+    - name: Prerequisites 
+      tags:
+       - always
+
+    - name: OracleCore
+      tags:
+       - OracleCore
+
+    - name: OraclePDB
+      tags:
+       - OraclePDB
+
+    - name: OracleSGA
+      tags: 
+        - OracleSGA
+
+    - name: OracleWaits
+      tags:
+        - OracleWaits
+
+    - name: OracleTablespaceDetails    
+      tags: 
+       - OracleTablespaceDetails
+
+    - name: OracleTablespaceUsage
+      tags:
+        - OracleTablespaceUsage
+   
+
+

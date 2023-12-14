@@ -1,0 +1,28 @@
+---
+
+   - name: "Site24x7 Temp OracleTablespaceUsage Plugins Directory Creation."
+     file:
+      path: "/opt/site24x7/monagent/temp/plugins/OracleTablespaceUsage"
+      state: directory
+     when: agent_path_check.stat.exists
+
+   - name: "Site24x7 Plugin Directory Check"
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/OracleTablespaceUsage"
+     register: plugin_path_check
+
+   - name: "Download the Site24x7 OracleTablespaceUsage Plugin Files."
+     get_url:
+        url: "{{ item }}"
+        dest: "/opt/site24x7/monagent/temp/plugins/OracleTablespaceUsage"
+        mode: 0744
+     loop: 
+      - "https://raw.githubusercontent.com/site24x7/plugins/suraj/OracleFullStackMonitoring/OracleTablespaceUsage/OracleTablespaceUsage.py"
+      - "https://raw.githubusercontent.com/site24x7/plugins/suraj/OracleFullStackMonitoring/OracleTablespaceUsage/OracleTablespaceUsage.cfg"
+     when: plugin_path_check.stat.exists
+
+
+
+
+
+     

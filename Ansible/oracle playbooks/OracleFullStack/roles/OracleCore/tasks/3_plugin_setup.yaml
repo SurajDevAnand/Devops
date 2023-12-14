@@ -1,0 +1,37 @@
+---
+  # Site24x7 OracleCore Python File Setup
+   - name: "Site24x7 OracleCore Python File Check."
+     stat:
+      path: "/opt/site24x7/monagent/temp/plugins/OracleCore/OracleCore.py"
+     register: OracleCore_python_file_check
+
+   - name: "Extracting Python3 Default Path."
+     command: which python3
+     register: python3_path
+
+   - set_fact:
+      actual_path: "{{ '#!'+python3_path.stdout }}"
+
+   - name: "Setting the Default Python Path for the Site24x7 OracleCore Plugin"
+     lineinfile:
+       path: "/opt/site24x7/monagent/temp/plugins/OracleCore/OracleCore.py"
+       regexp: "#!"
+       line: "{{actual_path}}"
+     when: OracleCore_python_file_check.stat.exists
+
+   - name: "Checking the Site24x7 OracleCore Plugin Output"
+     shell: "/opt/site24x7/monagent/temp/plugins/OracleCore/OracleCore.py --hostname={{Oracle_host}} --port={{Oracle_port}} --username={{Oracle_username}} --password={{Oracle_password}} --oracle_home={{Oracle_home}} --sid={{Oracle_sid}} --tls={{Oracle_tls}} --wallet_location={{Oracle_wallet_location}}"
+     register: OracleCore_python_output
+     when: OracleCore_python_file_check.stat.exists
+
+   - name: "Site24x7 OracleCore plugins with Error !"
+     debug:
+      msg: "Site24x7 OracleCore Plugin OUTPUT error ! \n {{ OracleCore_python_output.stdout }}"
+     when: "'\"status\": 0' in OracleCore_python_output.stdout and OracleCore_python_file_check.stat.exists"
+
+   - name: "Moving the Site24x7 OracleCore Folder to the Plugins Directory"
+     command: "mv  /opt/site24x7/monagent/temp/plugins/OracleCore /opt/site24x7/monagent/plugins"
+     ignore_errors: true
+     when: "plugin_path_check.stat.exists and '\"status\": 0' not in OracleCore_python_output.stdout"
+
+     
